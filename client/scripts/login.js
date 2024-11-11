@@ -5,21 +5,33 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorText = document.getElementById("error");
 
   loginButton.addEventListener("click", async () => {
-    const username = usernameInput.value;
+    const username = usernameInput.value.trim();
     const password = passwordInput.value;
-    const response = await fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await response.json();
-    if (data?.username) {
-      localStorage.setItem("user", JSON.stringify(data));
-      window.location.href = "/";
-    } else {
-      errorText.innerText = data;
+
+    if (!username || !password) {
+      errorText.innerText = "Benutzername und Passwort dürfen nicht leer sein.";
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data?.username) {
+        localStorage.setItem("user", JSON.stringify(data));
+        window.location.href = "/";
+      } else {
+        errorText.innerText = data.error || "Login fehlgeschlagen."; // Greife auf das Fehlerfeld zu
+      }
+    } catch (error) {
+      console.error("Fehler beim Login:", error.message);
+      errorText.innerText = "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.";
     }
   });
 });

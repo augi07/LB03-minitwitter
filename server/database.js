@@ -22,9 +22,8 @@ const encrypt = (text) => {
 
 // Entschlüsselungsfunktion
 const decrypt = (text) => {
-  // Prüfen, ob der Text verschlüsselt ist
   if (!text.includes(":")) {
-    return text; // Unverschlüsselten Text direkt zurückgeben
+    return text; // Unverschlüsselten Text zurückgeben
   }
 
   try {
@@ -34,34 +33,19 @@ const decrypt = (text) => {
     decrypted += decipher.final("utf8");
     return decrypted;
   } catch (error) {
-    console.error("Fehler beim Entschlüsseln des Textes:", error.message);
-    return "[Fehler beim Entschlüsseln]"; // Fallback-Text
+    console.error("Fehler beim Entschlüsseln:", error.message);
+    return "[Fehler beim Entschlüsseln]";
   }
 };
 
 // Bestehende Passwörter prüfen und hashen
 const hashExistingPasswords = async (db) => {
-  const users = await new Promise((resolve, reject) => {
-    db.all("SELECT id, username, password FROM users", [], (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
-
+  const users = await queryDB(db, "SELECT id, username, password FROM users");
   for (const user of users) {
-    if (!user.password.startsWith("$2b$") && !user.password.startsWith("$2a$")) {
+    if (!user.password.startsWith("$2b$")) {
       const hashedPassword = await bcrypt.hash(user.password, 10);
-      await new Promise((resolve, reject) => {
-        db.run(
-          "UPDATE users SET password = ? WHERE id = ?",
-          [hashedPassword, user.id],
-          (err) => {
-            if (err) return reject(err);
-            resolve();
-          }
-        );
-      });
-      console.log(`Passwort für Benutzer '${user.username}' wurde gehashed.`);
+      await insertDB(db, "UPDATE users SET password = ? WHERE id = ?", [hashedPassword, user.id]);
+      console.log(`Passwort für '${user.username}' gehasht.`);
     }
   }
 };
@@ -76,19 +60,13 @@ const seedUsersTable = async (db) => {
 
   for (const user of users) {
     const hashedPassword = await bcrypt.hash(user.password, 10);
-    db.run(`INSERT INTO users (username, password) VALUES (?, ?)`, [user.username, hashedPassword]);
+    await insertDB(db, "INSERT INTO users (username, password) VALUES (?, ?)", [user.username, hashedPassword]);
   }
 };
 
 // Datenbank initialisieren
 const initializeDatabase = async () => {
-  const db = new sqlite3.Database("./minitwitter.db", (err) => {
-    if (err) {
-      console.error("Fehler beim Verbinden mit der Datenbank:", err.message);
-    } else {
-      console.log("Mit der SQLite-Datenbank verbunden.");
-    }
-  });
+  const db = new sqlite3.Database("./minitwitter.db");
 
   db.serialize(() => {
     db.run(
@@ -109,14 +87,10 @@ const initializeDatabase = async () => {
     );
 
     db.get("SELECT * FROM users LIMIT 1", [], async (err, row) => {
-      if (!err) {
-        await hashExistingPasswords(db); // Bestehende Passwörter prüfen und hashen
-      }
-    });
-
-    db.get("SELECT * FROM users LIMIT 1", [], async (err, row) => {
       if (!row) {
         await seedUsersTable(db);
+      } else {
+        await hashExistingPasswords(db);
       }
     });
   });
@@ -124,6 +98,7 @@ const initializeDatabase = async () => {
   return db;
 };
 
+// Datenbankabfragen
 const insertDB = (db, query, params = []) => {
   return new Promise((resolve, reject) => {
     db.run(query, params, (err) => {
