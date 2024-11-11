@@ -4,7 +4,7 @@ const crypto = require("crypto");
 
 require("dotenv").config();
 
-const encryptionKey = process.env.ENCRYPTION_KEY || "32_character_long_encryption_key!";
+const encryptionKey = process.env.ENCRYPTION_KEY;
 if (encryptionKey.length !== 32) {
   throw new Error("ENCRYPTION_KEY muss genau 32 Zeichen lang sein.");
 }
