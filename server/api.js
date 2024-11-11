@@ -1,5 +1,6 @@
-const { initializeDatabase, queryDB, insertDB } = require("./database");
+const { initializeDatabase, queryDB, insertDB, encrypt, decrypt } = require("./database");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 require("dotenv").config();
 
 let db;
@@ -29,26 +30,51 @@ const initializeAPI = async (app) => {
 };
 
 const getFeed = async (req, res) => {
-  const tweets = await queryDB(db, "SELECT * FROM tweets ORDER BY id DESC");
-  res.json(tweets);
+  try {
+    const tweets = await queryDB(db, "SELECT * FROM tweets ORDER BY id DESC");
+    const decryptedTweets = tweets.map((tweet) => {
+      try {
+        return {
+          ...tweet,
+          text: decrypt(tweet.text), // Entschlüsseln des Textes
+        };
+      } catch (error) {
+        console.error(`Fehler beim Entschlüsseln von Tweet mit ID ${tweet.id}:`, error.message);
+        return {
+          ...tweet,
+          text: "[Fehler beim Entschlüsseln]", // Fallback-Text anzeigen
+        };
+      }
+    });
+    res.json(decryptedTweets);
+  } catch (error) {
+    console.error("Error in getFeed:", error.message);
+    res.status(500).json({ error: "Failed to fetch feed." });
+  }
 };
 
 const postTweet = async (req, res) => {
-  if (req.user.username !== req.body.username) {
-    return res.status(403).json({ error: "Access denied" });
-  }
+  try {
+    if (req.user.username !== req.body.username) {
+      return res.status(403).json({ error: "Access denied" });
+    }
 
-  const query = `INSERT INTO tweets (username, timestamp, text) VALUES ('${req.user.username}', '${new Date().toISOString()}', '${req.body.text}')`;
-  await insertDB(db, query);
-  res.json({ status: "ok" });
+    const encryptedText = encrypt(req.body.text); // Verschlüsselung des Textes
+    const query = `INSERT INTO tweets (username, timestamp, text) VALUES (?, ?, ?)`;
+    await insertDB(db, query, [req.user.username, new Date().toISOString(), encryptedText]);
+    res.json({ status: "ok" });
+  } catch (error) {
+    console.error("Error in postTweet:", error.message);
+    res.status(500).json({ error: "Failed to post tweet." });
+  }
 };
 
 const login = async (req, res) => {
   const { username, password } = req.body;
-  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
-  const user = await queryDB(db, query);
+  const query = `SELECT * FROM users WHERE username = ?`;
+  const user = await queryDB(db, query, [username]);
 
-  if (user.length === 1) {
+  if (user.length === 1 && await bcrypt.compare(password, user[0].password)) {
     const token = generateToken(username);
     res.json({ username, token });
   } else {
