@@ -28,7 +28,11 @@ const decrypt = (text) => {
 
   try {
     const [iv, encryptedText] = text.split(":");
-    const decipher = crypto.createDecipheriv(algorithm, encryptionKey, Buffer.from(iv, "hex"));
+    const decipher = crypto.createDecipheriv(
+      algorithm,
+      encryptionKey,
+      Buffer.from(iv, "hex")
+    );
     let decrypted = decipher.update(encryptedText, "hex", "utf8");
     decrypted += decipher.final("utf8");
     return decrypted;
@@ -44,7 +48,10 @@ const hashExistingPasswords = async (db) => {
   for (const user of users) {
     if (!user.password.startsWith("$2b$")) {
       const hashedPassword = await bcrypt.hash(user.password, 10);
-      await insertDB(db, "UPDATE users SET password = ? WHERE id = ?", [hashedPassword, user.id]);
+      await insertDB(db, "UPDATE users SET password = ? WHERE id = ?", [
+        hashedPassword,
+        user.id,
+      ]);
       console.log(`Passwort für '${user.username}' gehasht.`);
     }
   }
@@ -60,7 +67,10 @@ const seedUsersTable = async (db) => {
 
   for (const user of users) {
     const hashedPassword = await bcrypt.hash(user.password, 10);
-    await insertDB(db, "INSERT INTO users (username, password) VALUES (?, ?)", [user.username, hashedPassword]);
+    await insertDB(db, "INSERT INTO users (username, password) VALUES (?, ?)", [
+      user.username,
+      hashedPassword,
+    ]);
   }
 };
 

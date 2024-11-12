@@ -1,4 +1,4 @@
-const { initializeDatabase, queryDB, insertDB, encrypt, decrypt } = require("./database");
+const { initializeDatabase, queryDB, insertDB, encrypt, decrypt, } = require("./database");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const xss = require("xss"); // Für XSS-Schutz
@@ -34,7 +34,9 @@ const authenticateToken = (req, res, next) => {
       return res.status(403).json({ error: "Forbidden" });
     }
     req.user = user;
-    logAction(`Authenticated request by user '${user.username}' from IP ${req.ip}`);
+    logAction(
+      `Authenticated request by user '${user.username}' from IP ${req.ip}`
+    );
     next();
   });
 };
@@ -65,7 +67,9 @@ const getFeed = async (req, res) => {
     res.json(sanitizedTweets);
   } catch (error) {
     console.error("Error in getFeed:", error.message);
-    logAction(`Error while fetching feed for user '${req.user.username}': ${error.message}`);
+    logAction(
+      `Error while fetching feed for user '${req.user.username}': ${error.message}`
+    );
     res.status(500).json({ error: "Failed to fetch feed." });
   }
 };
@@ -73,7 +77,9 @@ const getFeed = async (req, res) => {
 const postTweet = async (req, res) => {
   try {
     if (req.user.username !== req.body.username) {
-      logAction(`Access denied: User '${req.user.username}' tried to post as '${req.body.username}'`);
+      logAction(
+        `Access denied: User '${req.user.username}' tried to post as '${req.body.username}'`
+      );
       return res.status(403).json({ error: "Access denied" });
     }
 
@@ -85,12 +91,18 @@ const postTweet = async (req, res) => {
 
     const encryptedText = encrypt(sanitizedText); // Verschlüsselung
     const query = `INSERT INTO tweets (username, timestamp, text) VALUES (?, ?, ?)`;
-    await insertDB(db, query, [req.user.username, new Date().toISOString(), encryptedText]);
+    await insertDB(db, query, [
+      req.user.username,
+      new Date().toISOString(),
+      encryptedText,
+    ]);
     logAction(`User '${req.user.username}' posted a tweet.`);
     res.status(201).json({ status: "Tweet posted successfully." });
   } catch (error) {
     console.error("Error in postTweet:", error.message);
-    logAction(`Error while posting a tweet for user '${req.user.username}': ${error.message}`);
+    logAction(
+      `Error while posting a tweet for user '${req.user.username}': ${error.message}`
+    );
     res.status(500).json({ error: "Failed to post tweet." });
   }
 };
@@ -101,7 +113,10 @@ const login = async (req, res) => {
     const query = `SELECT * FROM users WHERE username = ?`;
     const user = await queryDB(db, query, [username]);
 
-    if (user.length === 1 && await bcrypt.compare(password, user[0].password)) {
+    if (
+      user.length === 1 &&
+      (await bcrypt.compare(password, user[0].password))
+    ) {
       const token = generateToken(username);
       logAction(`User '${username}' logged in successfully.`);
       res.json({ username, token });
@@ -111,7 +126,9 @@ const login = async (req, res) => {
     }
   } catch (error) {
     console.error("Error in login:", error.message);
-    logAction(`Error during login attempt for username '${req.body.username}': ${error.message}`);
+    logAction(
+      `Error during login attempt for username '${req.body.username}': ${error.message}`
+    );
     res.status(500).json({ error: "Failed to login." });
   }
 };

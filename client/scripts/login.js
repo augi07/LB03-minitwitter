@@ -31,7 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.error("Fehler beim Login:", error.message);
-      errorText.innerText = "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.";
+      errorText.innerText =
+        "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.";
     }
   });
 });

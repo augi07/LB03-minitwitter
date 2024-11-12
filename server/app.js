@@ -8,13 +8,14 @@ const path = require("path");
 
 // Create the express server
 const app = express();
-app.disable('x-powered-by');
+app.disable("x-powered-by");
 app.use(express.json());
 const server = http.createServer(app);
 
-const logStream = fs.createWriteStream(path.join(__dirname, "server.log"), { flags: "a" });
+const logStream = fs.createWriteStream(path.join(__dirname, "server.log"), {
+  flags: "a",
+});
 app.use(morgan("combined", { stream: logStream }));
-
 
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 Minuten

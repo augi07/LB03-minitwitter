@@ -16,7 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const tweetContainer = document.createElement("div");
-    tweetContainer.className = "bg-slate-600 rounded p-4 flex gap-4 items-center border-l-4 border-blue-400";
+    tweetContainer.className =
+      "bg-slate-600 rounded p-4 flex gap-4 items-center border-l-4 border-blue-400";
 
     const usernameElement = document.createElement("h3");
     usernameElement.className = "font-semibold text-gray-200";
