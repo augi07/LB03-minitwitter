@@ -2,6 +2,7 @@ const { initializeDatabase, queryDB, insertDB, encrypt, decrypt } = require("./d
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const xss = require("xss"); // Für XSS-Schutz
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 let db;
@@ -23,11 +24,17 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+const loginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 Minuten
+  max: 5, // Maximal 5 Anfragen pro IP
+  message: { error: "Too many login attempts. Please try again later." },
+});
+
 const initializeAPI = async (app) => {
   db = await initializeDatabase();
   app.get("/api/feed", authenticateToken, getFeed);
   app.post("/api/feed", authenticateToken, postTweet);
-  app.post("/api/login", login);
+  app.post("/api/login", loginLimiter, login);
 };
 
 const getFeed = async (req, res) => {
