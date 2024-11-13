@@ -30,3 +30,29 @@
 | switzerchees | 123456   |
 | john         | 123456   |
 | jane         | 123456   |
+
+
+This is a Project cloned by Augusto Hasenbalg.
+So concider doing the following:
+
+1. Clone the Project
+   ```sh
+   git clone https://github.com/augi07/LB03-minitwitter
+   ```
+
+2. Install NPM packages
+   ```sh
+   yarn install
+   # or
+   npm install
+   ```
+3. Run the app
+   ```sh
+   yarn start
+   # or
+   npm start
+   ```
+4. Open the app in your browser
+   ```sh
+   http://localhost:3000
+   ```
