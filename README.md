@@ -32,8 +32,8 @@
 | jane         | 123456   |
 
 
-This is a Project cloned by Augusto Hasenbalg.
-So concider doing the following:
+### This Project is now a cloned by Augusto Hasenbalg.
+### So concider doing the following:
 
 1. Clone the Project
    ```sh
