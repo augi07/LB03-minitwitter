@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("user", JSON.stringify(data));
         window.location.href = "/";
       } else {
-        errorText.innerText = data.error || "Login fehlgeschlagen."; // Greife auf das Fehlerfeld zu
+        errorText.innerText = data.error || "Login fehlgeschlagen.";
       }
     } catch (error) {
       console.error("Fehler beim Login:", error.message);
