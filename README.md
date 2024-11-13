@@ -32,7 +32,7 @@
 | jane         | 123456   |
 
 
-### This Project is now a cloned by Augusto Hasenbalg.
+### This Project is now a cloned Project by Augusto Hasenbalg.
 ### So concider doing the following:
 
 1. Clone the Project
